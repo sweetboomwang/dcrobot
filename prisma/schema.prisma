@@ -1,0 +1,46 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model event {
+  id      Int    @id @default(autoincrement()) @db.UnsignedInt
+  type_id Int    @db.UnsignedInt
+  name    String @db.VarChar(45)
+  points  Int    @db.UnsignedInt
+  status  Int    @default(1) @db.UnsignedTinyInt
+}
+
+model friend {
+  id          Int      @id @default(autoincrement()) @db.UnsignedInt
+  m1_id       BigInt   @db.UnsignedBigInt
+  m2_id       BigInt   @db.UnsignedBigInt
+  status      Int      @default(1) @db.UnsignedTinyInt
+  create_time DateTime @default(now()) @db.DateTime(0)
+
+  @@unique([m1_id, m2_id], map: "idx_m1_m2")
+}
+
+model member {
+  id          Int      @id @default(autoincrement()) @db.UnsignedInt
+  member_id   BigInt   @unique(map: "udx_member") @db.UnsignedBigInt
+  wallet      String   @db.Char(42)
+  status      Int      @default(1) @db.UnsignedTinyInt
+  points      Int
+  create_time DateTime @default(now()) @db.DateTime(0)
+  update_time DateTime @default(now()) @db.DateTime(0)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model points_log {
+  id          Int      @id @default(autoincrement()) @db.UnsignedInt
+  points      Int
+  from_id     BigInt   @db.UnsignedBigInt
+  to_id       BigInt   @default(0) @db.UnsignedBigInt
+  type        Int      @db.UnsignedInt
+  create_time DateTime @default(now()) @db.DateTime(0)
+}
