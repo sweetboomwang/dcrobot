@@ -30,7 +30,7 @@ export async function getMember(memberId:bigint):Promise<member>{
 export async function initMember(memberId:bigint):Promise<member>{
     console.log("initMember:",memberId);
     try {
-        await prisma.member.create({
+        prisma.member.create({
             data:{
                 member_id:memberId,
                 wallet:"",
