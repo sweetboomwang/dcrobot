@@ -22,15 +22,14 @@ export async function getMember(memberId:bigint):Promise<member>{
     if(m){
         return m;
     }
-    throw new MemberNotExistError();
+    return initMember(memberId);
+    // throw new MemberNotExistError();
 }
 
 
 export async function initMember(memberId:bigint):Promise<member>{
     console.log("initMember:",memberId);
     try {
-        return await getMember(memberId);
-    } catch (MemberNotExistError) {
         await prisma.member.create({
             data:{
                 member_id:memberId,
@@ -38,6 +37,8 @@ export async function initMember(memberId:bigint):Promise<member>{
                 points:200
             }
         })
+    } catch (error) {
+        console.error(error);
     }
     return await getMember(memberId);
 }

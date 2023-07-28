@@ -20,15 +20,12 @@ export async function addFriend(memberId:bigint,friendId:bigint){
         balance = m1.points;
         console.log("m1.points:"+m1.points);
     } catch (MemberNotExistError) {
-        const m2 = await initMember(memberId);
-        if(m2){
-            balance = m2.points;
-        }
+        console.error("MemberNotExistError");
     }
     try {
         const m2 = await getMember(friendId);
     } catch (MemberNotExistError) {
-        initMember(friendId);
+        console.error("MemberNotExistError");
     }
      
     

@@ -104,7 +104,7 @@ class ChannelCommandMessage {
           let rs = `personal information:\n\r`;
           if(m){
             rs += `points:${m.points}\n\r`;
-            rs += `wallet:${m.wallet}\n\r`;
+            // rs += `wallet:${m.wallet}\n\r`;
           }
           const embed = getFormatEmbed('info',rs);
           return command.reply({
