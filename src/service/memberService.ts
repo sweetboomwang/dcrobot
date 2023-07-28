@@ -14,22 +14,24 @@ export async function getMemberPoints(memberId:bigint):Promise<number>{
 }
 
 export async function getMember(memberId:bigint):Promise<member>{
-    try {
-        const m = await prisma.member.findUnique({
-            where:{
-                member_id:memberId
-            }
-        });
-        if(m){
-            return m;
+    let m = await prisma.member.findUnique({
+        where:{
+            member_id:memberId
         }
-    } catch (error) {
-        
+    });
+    if(m){
+        return m;
     }
-   
     await initMember(memberId);
-    return await getMember(memberId);
-    // throw new MemberNotExistError();
+    m = await prisma.member.findFirst({
+        where:{
+            member_id:memberId
+        }
+    });
+    if(m){
+        return m;
+    }
+    throw new MemberNotExistError();
 }
 
 
