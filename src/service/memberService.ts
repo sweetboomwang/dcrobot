@@ -14,7 +14,7 @@ export async function getMemberPoints(memberId:bigint):Promise<number>{
 }
 
 export async function getMember(memberId:bigint):Promise<member>{
-    let m = await prisma.member.findUnique({
+    let m = await prisma.member.findFirst({
         where:{
             member_id:memberId
         }
