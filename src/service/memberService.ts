@@ -22,15 +22,16 @@ export async function getMember(memberId:bigint):Promise<member>{
     if(m){
         return m;
     }
-    return initMember(memberId);
+    await initMember(memberId);
+    return await getMember(memberId);
     // throw new MemberNotExistError();
 }
 
 
-export async function initMember(memberId:bigint):Promise<member>{
+export async function initMember(memberId:bigint):Promise<void>{
     console.log("initMember:",memberId);
     try {
-        prisma.member.create({
+        await prisma.member.create({
             data:{
                 member_id:memberId,
                 wallet:"",
@@ -40,5 +41,4 @@ export async function initMember(memberId:bigint):Promise<member>{
     } catch (error) {
         console.error(error);
     }
-    return await getMember(memberId);
 }
