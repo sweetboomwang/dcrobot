@@ -8,7 +8,7 @@ console.log(`The connection URL is ${process.env.DATABASE_URL}`)
 const {PrismaClient} = pkg;
 
 export const prisma = new PrismaClient();
-export const config = initConfig();
+// export const config = initConfig();
 
 // await redisClient.connect();
 /**
