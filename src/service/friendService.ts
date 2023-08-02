@@ -1,6 +1,6 @@
 
 import { member } from '@prisma/client';
-import { PointsLackError, FriendLimitError, FriendAlreadyError } from '../entity/bizError.js';
+import { PointsLackError, FriendLimitError, FriendAlreadyError, FriendAddError } from '../entity/bizError.js';
 import {prisma} from './../init.js';
 import { getMember, initMember } from './memberService.js';
 
@@ -14,6 +14,9 @@ export const FRIEND_LIMIT= 2;
  */
 export async function addFriend(memberId:bigint,friendId:bigint){
     console.log("addFriend memberId:"+memberId+" friendId:"+friendId);
+    if(memberId == friendId){
+        throw new FriendAddError();
+    }
     let balance = 0;
     try {
         const m1 = await getMember(memberId);
@@ -141,23 +144,25 @@ export async function findFriends(memberId:bigint):Promise<Array<member>>{
             status:1
         }
     })
+    const rs = new Array();
+    f1.forEach(f => {
+        console.log("findFriends-forEach rs:",f);
+        rs.push(f.m2_id);
+    })
+
     const f2 = await prisma.friend.findMany({
         where:{
             m2_id:memberId,
             status:1
         }
     })
-    let fs = new Array();
-    fs.push(f1);
-    fs.push(f2);
-    if(!fs){
-        return new Array();
-    }
-    const rs = new Array();
-    fs.forEach(f => {
+    f2.forEach(f => {
         console.log("findFriends-forEach rs:",f);
-        rs.push(f.m2_id);
+        rs.push(f.m1_id);
     })
+    if(!rs){
+        return rs;
+    }
     const members = await prisma.member.findMany({
         where:{
             member_id:{
