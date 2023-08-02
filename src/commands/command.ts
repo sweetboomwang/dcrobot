@@ -3,7 +3,7 @@ import { Discord, Slash, SlashOption, SlashChoice,SimpleCommand,SimpleCommandMes
 import { time,userMention,channelMention, roleMention } from '@discordjs/builders';
 import { getFormatEmbed } from '../tools/tools.js';
 import { addFriend, findFriends, removeFriend } from '../service/friendService.js';
-import { FriendAlreadyError, FriendLimitError } from '../entity/bizError.js';
+import { FriendAlreadyError, FriendLimitError, PointsLackError } from '../entity/bizError.js';
 import { getMember } from '../service/memberService.js';
 
 
@@ -21,26 +21,30 @@ class ChannelCommandMessage {
             return command.reply({content:'friendId error'});
           }
           await addFriend(BigInt(command.user.id),BigInt(friendId));
-        //   await bindWalletAddress(BigInt(command.user.id),address);
-          let rs = `add-friend succeeded`;
+          let rs = `${userMention(friendId)} add-friend succeeded`;
           const embed = getFormatEmbed('add-friend',rs);
           return command.reply({
             embeds:[embed]
           });
         } catch (error) {
           console.log('add-friend error:',error);
+          if(error instanceof PointsLackError){
+            return command.reply({
+              embeds:[getFormatEmbed('add-friend',`ERROR:${userMention(friendId)} insufficient points`)]
+            });
+          }
           if(error instanceof FriendAlreadyError){
             return command.reply({
-              embeds:[getFormatEmbed('add-friend',`Already added`)]
+              embeds:[getFormatEmbed('add-friend',`ERROR:${userMention(friendId)} Already added`)]
             });
           }
           if(error instanceof FriendLimitError){
             return command.reply({
-              embeds:[getFormatEmbed('add-friend',` has reached the limit`)]
+              embeds:[getFormatEmbed('add-friend',`ERROR: has reached the limit`)]
             });
           }
           return command.reply({
-            embeds:[getFormatEmbed('add-friend',`failed`)]
+            embeds:[getFormatEmbed('add-friend',`ERROR:failed`)]
           });
         }
     }
@@ -53,11 +57,11 @@ class ChannelCommandMessage {
         try {
           console.log('remove-friend userId:'+command.user.id+" friendId:"+friendId);
           if(!friendId){
-            return command.reply({content:'friendId error'});
+            return command.reply({embeds:[getFormatEmbed('remove-friend',`ERROR:friendId error`)]});
           }
           await removeFriend(BigInt(command.user.id),BigInt(friendId));
         //   await bindWalletAddress(BigInt(command.user.id),address);
-          let rs = `removefriend succeeded`;
+          let rs = `${userMention(friendId)} remove-friend succeeded`;
           const embed = getFormatEmbed('remove-friend',rs);
           return command.reply({
             embeds:[embed]
@@ -65,7 +69,7 @@ class ChannelCommandMessage {
         } catch (error) {
           console.error('remove-friend error:',error);
           return command.reply({
-            embeds:[getFormatEmbed('remove-friend',`failed`)]
+            embeds:[getFormatEmbed('remove-friend',`ERROR:failed`)]
           });
         }
     }
@@ -90,7 +94,7 @@ class ChannelCommandMessage {
         } catch (error) {
           console.error('find-friend error:',error);
           return command.reply({
-            embeds:[getFormatEmbed('find-friend',`failed`)]
+            embeds:[getFormatEmbed('find-friend',`ERROR:failed`)]
           });
         }
     }
@@ -113,7 +117,7 @@ class ChannelCommandMessage {
         } catch (error) {
           console.error('info error:',error);
           return command.reply({
-            embeds:[getFormatEmbed('info',`failed`)]
+            embeds:[getFormatEmbed('info',`ERROR:failed`)]
           });
         }
     }

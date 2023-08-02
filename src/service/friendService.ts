@@ -43,6 +43,17 @@ export async function addFriend(memberId:bigint,friendId:bigint){
     if(c2 > 0){
         throw new FriendAlreadyError();
     }
+
+    const c3 = await prisma.friend.count({
+        where:{
+            m1_id:friendId,
+            m2_id:memberId,
+            status:1
+        }
+    })
+    if(c3 > 0){
+        throw new FriendAlreadyError();
+    }
     
     const c1 = await prisma.friend.count({
         where:{
@@ -71,13 +82,6 @@ export async function addFriend(memberId:bigint,friendId:bigint){
             data:{
                 m1_id:memberId,
                 m2_id:friendId,
-                status:1
-            }
-        })
-        await prisma.friend.create({
-            data:{
-                m1_id:friendId,
-                m2_id:memberId,
                 status:1
             }
         })
@@ -131,12 +135,21 @@ export async function removeFriend(memberId:bigint,friendId:bigint){
  */
 export async function findFriends(memberId:bigint):Promise<Array<member>>{
 
-    const fs = await prisma.friend.findMany({
+    const f1 = await prisma.friend.findMany({
         where:{
             m1_id:memberId,
             status:1
         }
     })
+    const f2 = await prisma.friend.findMany({
+        where:{
+            m2_id:memberId,
+            status:1
+        }
+    })
+    let fs = new Array();
+    fs.push(f1);
+    fs.push(f2);
     if(!fs){
         return new Array();
     }
