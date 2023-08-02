@@ -12,7 +12,7 @@ class ChannelCommandMessage {
 
     @Slash({ description: "add-friend", name: "add-friend" })
     async addfriend(
-      @SlashOption({ name: "friend",description: "friendid",type:ApplicationCommandOptionType.User})
+      @SlashOption({ name: "friend",description: "friendid",type:ApplicationCommandOptionType.User,required:true})
       friendId: string,
       command: CommandInteraction): Promise<unknown> {
         try {
@@ -21,8 +21,6 @@ class ChannelCommandMessage {
             return command.reply({content:'friendId error'});
           }
           await addFriend(BigInt(command.user.id),BigInt(friendId));
-          const um = userMention(friendId);
-          console.log("add-friend um:",um);
           let rs = `${friendId} add-friend succeeded`;
           const embed = getFormatEmbed('add-friend',rs);
           return command.reply({
@@ -30,16 +28,14 @@ class ChannelCommandMessage {
           });
         } catch (error) {
           console.log('add-friend error:',error);
-          const um1 = friendId;
-          console.log("add-friend um1:",um1);
           if(error instanceof PointsLackError){
             return command.reply({
-              embeds:[getFormatEmbed('add-friend',`ERROR:${um1} insufficient points`)]
+              embeds:[getFormatEmbed('add-friend',`ERROR:${friendId} insufficient points`)]
             });
           }
           if(error instanceof FriendAlreadyError){
             return command.reply({
-              embeds:[getFormatEmbed('add-friend',`ERROR:${um1} Already added`)]
+              embeds:[getFormatEmbed('add-friend',`ERROR:${friendId} Already added`)]
             });
           }
           if(error instanceof FriendLimitError){
@@ -55,7 +51,7 @@ class ChannelCommandMessage {
 
     @Slash({ description: "remove-friend", name: "remove-friend" })
     async removefriend(
-      @SlashOption({ name: "friend",description: "friendid",type:ApplicationCommandOptionType.User})
+      @SlashOption({ name: "friend",description: "friendid",type:ApplicationCommandOptionType.User,required:true})
       friendId: string,
       command: CommandInteraction): Promise<unknown> {
         try {
@@ -64,8 +60,7 @@ class ChannelCommandMessage {
             return command.reply({embeds:[getFormatEmbed('remove-friend',`ERROR:friendId error`)]});
           }
           await removeFriend(BigInt(command.user.id),BigInt(friendId));
-          const um = userMention(friendId);
-          let rs = `${um} remove-friend succeeded`;
+          let rs = `${friendId} remove-friend succeeded`;
           const embed = getFormatEmbed('remove-friend',rs);
           return command.reply({
             embeds:[embed]
