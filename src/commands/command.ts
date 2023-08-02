@@ -21,21 +21,23 @@ class ChannelCommandMessage {
             return command.reply({content:'friendId error'});
           }
           await addFriend(BigInt(command.user.id),BigInt(friendId));
-          let rs = `${userMention(friendId)} add-friend succeeded`;
+          const um = userMention(friendId);
+          let rs = `${um} add-friend succeeded`;
           const embed = getFormatEmbed('add-friend',rs);
           return command.reply({
             embeds:[embed]
           });
         } catch (error) {
           console.log('add-friend error:',error);
+          const um = userMention(friendId);
           if(error instanceof PointsLackError){
             return command.reply({
-              embeds:[getFormatEmbed('add-friend',`ERROR:${userMention(friendId)} insufficient points`)]
+              embeds:[getFormatEmbed('add-friend',`ERROR:${um} insufficient points`)]
             });
           }
           if(error instanceof FriendAlreadyError){
             return command.reply({
-              embeds:[getFormatEmbed('add-friend',`ERROR:${userMention(friendId)} Already added`)]
+              embeds:[getFormatEmbed('add-friend',`ERROR:${um} Already added`)]
             });
           }
           if(error instanceof FriendLimitError){
@@ -60,8 +62,8 @@ class ChannelCommandMessage {
             return command.reply({embeds:[getFormatEmbed('remove-friend',`ERROR:friendId error`)]});
           }
           await removeFriend(BigInt(command.user.id),BigInt(friendId));
-        //   await bindWalletAddress(BigInt(command.user.id),address);
-          let rs = `${userMention(friendId)} remove-friend succeeded`;
+          const um = userMention(friendId);
+          let rs = `${um} remove-friend succeeded`;
           const embed = getFormatEmbed('remove-friend',rs);
           return command.reply({
             embeds:[embed]
@@ -83,8 +85,8 @@ class ChannelCommandMessage {
           let rs = `your friends:\n\r`;
           if(friends){
             friends.forEach(f=>{
-                const userMetion = userMention(String(f.member_id));
-                rs += `${userMetion} \n\r`;
+                const um = userMention(String(f.member_id));
+                rs += `${um} \n\r`;
             });
           }
           const embed = getFormatEmbed('find-friend',rs);
@@ -108,7 +110,6 @@ class ChannelCommandMessage {
           let rs = `personal information:\n\r`;
           if(m){
             rs += `points:${m.points}\n\r`;
-            // rs += `wallet:${m.wallet}\n\r`;
           }
           const embed = getFormatEmbed('info',rs);
           return command.reply({
