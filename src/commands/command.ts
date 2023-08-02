@@ -23,14 +23,14 @@ class ChannelCommandMessage {
           await addFriend(BigInt(command.user.id),BigInt(friendId));
           const um = userMention(friendId);
           console.log("add-friend um:",um);
-          let rs = `${um} add-friend succeeded`;
+          let rs = `${friendId} add-friend succeeded`;
           const embed = getFormatEmbed('add-friend',rs);
           return command.reply({
             embeds:[embed]
           });
         } catch (error) {
           console.log('add-friend error:',error);
-          const um1 = userMention(friendId);
+          const um1 = friendId;
           console.log("add-friend um1:",um1);
           if(error instanceof PointsLackError){
             return command.reply({
