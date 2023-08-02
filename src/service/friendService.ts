@@ -155,15 +155,17 @@ export async function findFriends(memberId:bigint):Promise<Array<member>>{
     }
     const rs = new Array();
     fs.forEach(f => {
-        console.log("forEach rs:",f);
+        console.log("findFriends-forEach rs:",f);
         rs.push(f.m2_id);
     })
-    return await prisma.member.findMany({
+    const members = await prisma.member.findMany({
         where:{
             member_id:{
                 in:rs
             }
         },
-    })
+    });
+    console.log("findFriends-members:",members);
+    return members;
 
 }
