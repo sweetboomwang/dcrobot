@@ -11,6 +11,9 @@ export class FriendLimitError extends Error{}
 
 export class FriendAlreadyError extends Error{}
 
+export class FriendNotExistError extends Error{}
+
+
 
 /** member */
 export class MemberNotExistError extends Error{}

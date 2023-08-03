@@ -3,7 +3,7 @@ import { Discord, Slash, SlashOption, SlashChoice,SimpleCommand,SimpleCommandMes
 import { time,userMention,channelMention, roleMention } from '@discordjs/builders';
 import { getFormatEmbed } from '../tools/tools.js';
 import { addFriend, findFriends, removeFriend } from '../service/friendService.js';
-import { FriendAlreadyError, FriendLimitError, PointsLackError } from '../entity/bizError.js';
+import { FriendAlreadyError, FriendLimitError, FriendNotExistError, PointsLackError } from '../entity/bizError.js';
 import { getMember } from '../service/memberService.js';
 
 
@@ -67,6 +67,11 @@ class ChannelCommandMessage {
           });
         } catch (error) {
           console.error('remove-friend error:',error);
+          if(error instanceof FriendNotExistError){
+            return command.reply({
+              embeds:[getFormatEmbed('remove-friend',`ERROR:${friendId} is not your friend`)]
+            });
+          }
           return command.reply({
             embeds:[getFormatEmbed('remove-friend',`ERROR:failed`)]
           });

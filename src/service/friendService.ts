@@ -1,6 +1,6 @@
 
 import { member } from '@prisma/client';
-import { PointsLackError, FriendLimitError, FriendAlreadyError, FriendAddError } from '../entity/bizError.js';
+import { PointsLackError, FriendLimitError, FriendAlreadyError, FriendAddError, FriendNotExistError } from '../entity/bizError.js';
 import {prisma} from './../init.js';
 import { getMember, initMember } from './memberService.js';
 
@@ -107,6 +107,21 @@ export async function addFriend(memberId:bigint,friendId:bigint){
  * @param friendId 
  */
 export async function removeFriend(memberId:bigint,friendId:bigint){
+    const rs1 = await prisma.friend.findFirst({
+        where:{
+            m1_id:memberId,
+            m2_id:friendId
+        }
+    })
+    const rs2 = await prisma.friend.findFirst({
+        where:{
+            m1_id:friendId,
+            m2_id:memberId
+        }
+    })
+    if(!rs1 && !rs2){
+        throw new FriendNotExistError();
+    }
     console.log("removeFriend memberId:"+memberId+" friendId:"+friendId);
     try {
         await prisma.friend.delete({
