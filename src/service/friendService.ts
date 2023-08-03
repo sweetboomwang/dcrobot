@@ -108,9 +108,7 @@ export async function addFriend(memberId:bigint,friendId:bigint){
  */
 export async function removeFriend(memberId:bigint,friendId:bigint){
     console.log("removeFriend memberId:"+memberId+" friendId:"+friendId);
- 
-    await prisma.$transaction(async (prisma:any) => {
-        console.log("friend.update 1");
+    try {
         await prisma.friend.delete({
             where:{
                 m1_id_m2_id:{
@@ -119,7 +117,10 @@ export async function removeFriend(memberId:bigint,friendId:bigint){
                 }
             }
         });
-        console.log("friend.update 2");
+    } catch (error) {
+        console.error("removeFriend1:",error);
+    }
+    try {
         await prisma.friend.delete({
             where:{
                 m1_id_m2_id:{
@@ -128,8 +129,10 @@ export async function removeFriend(memberId:bigint,friendId:bigint){
                 }
             }
         });
-        
-    });
+    } catch (error) {
+        console.error("removeFriend2:",error);
+    }
+ 
 }
 /**
  * 根据memberId查询相关好友
