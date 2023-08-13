@@ -18,23 +18,23 @@ export async function addFriend(memberId:bigint,friendId:bigint){
         throw new FriendAddError();
     }
     let balance = 0;
-    try {
-        const m1 = await getMember(memberId);
-        balance = m1.points;
-        console.log("m1.points:"+m1.points);
-    } catch (MemberNotExistError) {
-        console.error("MemberNotExistError");
-    }
-    try {
-        const m2 = await getMember(friendId);
-    } catch (MemberNotExistError) {
-        console.error("MemberNotExistError");
-    }
+    // try {
+    //     const m1 = await getMember(memberId);
+    //     balance = m1.points;
+    //     console.log("m1.points:"+m1.points);
+    // } catch (MemberNotExistError) {
+    //     console.error("MemberNotExistError");
+    // }
+    // try {
+    //     const m2 = await getMember(friendId);
+    // } catch (MemberNotExistError) {
+    //     console.error("MemberNotExistError");
+    // }
      
     
-    if(balance < FRIEND_POINTS){
-        throw new PointsLackError();
-    }
+    // if(balance < FRIEND_POINTS){
+    //     throw new PointsLackError();
+    // }
 
     const c2 = await prisma.friend.count({
         where:{
@@ -58,15 +58,15 @@ export async function addFriend(memberId:bigint,friendId:bigint){
         throw new FriendAlreadyError();
     }
     
-    const c1 = await prisma.friend.count({
-        where:{
-            m1_id:memberId,
-            status:1
-        }
-    });
-    if(c1 >= FRIEND_LIMIT){
-        throw new FriendLimitError();
-    }
+    // const c1 = await prisma.friend.count({
+    //     where:{
+    //         m1_id:memberId,
+    //         status:1
+    //     }
+    // });
+    // if(c1 >= FRIEND_LIMIT){
+    //     throw new FriendLimitError();
+    // }
     
     await prisma.$transaction(async (prisma:any) => {
         //扣减积分
