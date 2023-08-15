@@ -3,7 +3,7 @@ import { Discord, Slash, SlashOption, SlashChoice,SimpleCommand,SimpleCommandMes
 import { time,userMention,channelMention, roleMention } from '@discordjs/builders';
 import { getFormatEmbed } from '../tools/tools.js';
 import { addFriend, findFriends, removeFriend } from '../service/friendService.js';
-import { FriendAlreadyError, FriendLimitError, FriendNotExistError, PointsLackError } from '../entity/bizError.js';
+import { FriendAddSelfError, FriendAlreadyError, FriendLimitError, FriendNotExistError, LeaderCantAddFriendError, LeaderCantRemoveFriendError, NoUpperFriendError, OnlyOneFriendError, PointsLackError, RemoveFriendCDError } from '../entity/bizError.js';
 import { getMember } from '../service/memberService.js';
 
 
@@ -33,14 +33,29 @@ class ChannelCommandMessage {
               embeds:[getFormatEmbed('add-friend',`ERROR:${friendId} insufficient points`)]
             });
           }
+          if(error instanceof FriendAddSelfError){
+            return command.reply({
+              embeds:[getFormatEmbed('add-friend',`ERROR:friend can't be yourself`)]
+            });
+          } 
+          if(error instanceof LeaderCantAddFriendError){
+            return command.reply({
+              embeds:[getFormatEmbed('add-friend',`ERROR:The captain can't add friends`)]
+            });
+          }
+          if(error instanceof OnlyOneFriendError){
+            return command.reply({
+              embeds:[getFormatEmbed('add-friend',`ERROR:only one friend can be added`)]
+            });
+          }
           if(error instanceof FriendAlreadyError){
             return command.reply({
               embeds:[getFormatEmbed('add-friend',`ERROR:${friendId} Already added`)]
             });
           }
-          if(error instanceof FriendLimitError){
+          if(error instanceof NoUpperFriendError){
             return command.reply({
-              embeds:[getFormatEmbed('add-friend',`ERROR: has reached the limit`)]
+              embeds:[getFormatEmbed('add-friend',`ERROR:your friend has no superior friends`)]
             });
           }
           return command.reply({
@@ -70,6 +85,18 @@ class ChannelCommandMessage {
           if(error instanceof FriendNotExistError){
             return command.reply({
               embeds:[getFormatEmbed('remove-friend',`ERROR:${friendId} is not your friend`)]
+            });
+          }
+          if(error instanceof LeaderCantRemoveFriendError){
+            return command.reply({
+              embeds:[getFormatEmbed('remove-friend',`ERROR: the captain cannot remove friends`)]
+            });
+          } 
+          if(error instanceof RemoveFriendCDError){
+            error.message
+            return command.reply({
+              
+              embeds:[getFormatEmbed('remove-friend',`ERROR: function unlocked for ${error.message} hours`)]
             });
           }
           return command.reply({

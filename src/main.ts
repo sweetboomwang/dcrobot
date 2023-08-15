@@ -2,7 +2,6 @@
 // import { WebSocketManager } from '@discordjs/ws';
 // import { GatewayDispatchEvents, GatewayIntentBits, InteractionType, MessageFlags, Routes, ChannelsAPI } from '@discordjs/core';
 import * as dotenv from 'dotenv';
-import {initConfig} from './init.js';
 import { changePoints,EventTypeEnum,countPoints } from './service/pointsService.js';
 // import { SlashCommandBuilder } from '@discordjs/builders';
 import { getFormatEmbed } from './tools/tools.js';
@@ -12,6 +11,8 @@ import { addFriend } from './service/friendService.js';
 import 'reflect-metadata';
 import {Client} from 'discordx';
 import {dirname, importx} from '@discordx/importer';
+import {redisClient} from './init.js';
+
 
 // const addFriendCommand = new SlashCommandBuilder()
 // 	.setName('addFriend')
@@ -30,10 +31,10 @@ import {dirname, importx} from '@discordx/importer';
 // Get the final raw data that can be sent to Discord
 
 dotenv.config();
-const config = await initConfig();
 const botId = String(process.env.bot_id);
 const gId = String(process.env.guild_id);
 const disToken = String(process.env.DISCORD_TOKEN);
+redisClient.ping();
 
 
 // const gateway = new WebSocketManager({

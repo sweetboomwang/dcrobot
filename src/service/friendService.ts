@@ -1,11 +1,29 @@
 
 import { member } from '@prisma/client';
-import { PointsLackError, FriendLimitError, FriendAlreadyError, FriendAddError, FriendNotExistError } from '../entity/bizError.js';
-import {prisma} from './../init.js';
+import { PointsLackError, FriendLimitError, FriendAlreadyError, FriendNotExistError, LeaderCantAddFriendError, OnlyOneFriendError, NoUpperFriendError, LeaderCantRemoveFriendError, RemoveFriendCDError, FriendAddSelfError } from '../entity/bizError.js';
+import { REDIS_REMOVE_FRIEND_TTL } from '../entity/constants.js';
+import {prisma, redisClient} from './../init.js';
 import { getMember, initMember } from './memberService.js';
 
 export const FRIEND_POINTS = 30;
 export const FRIEND_LIMIT= 2;
+
+const teamLeaders = [
+    //大航海 - 0xcjl.eth   jialin
+    "692748111608545361",
+    //康师傅   - jamk
+    "816550901715828787",
+    //LeDAO - picrnicrsaisai
+    "1106099404034818078",
+    //PFPDAO - _scoluo
+    "770287671699701770",
+    //Crypto Bar - clivedavis
+    "873058288680468542",
+    //NovaDAO - sevenyang
+    "1039807128631771218",
+    //weeping club - mailajinbao
+    "1125680403794112523"
+];
 
 /**
  * 扣除积分加好友
@@ -15,27 +33,37 @@ export const FRIEND_LIMIT= 2;
 export async function addFriend(memberId:bigint,friendId:bigint){
     console.log("addFriend memberId:"+memberId+" friendId:"+friendId);
     if(memberId == friendId){
-        throw new FriendAddError();
+        throw new FriendAddSelfError();
     }
     let balance = 0;
-    // try {
-    //     const m1 = await getMember(memberId);
-    //     balance = m1.points;
-    //     console.log("m1.points:"+m1.points);
-    // } catch (MemberNotExistError) {
-    //     console.error("MemberNotExistError");
-    // }
-    // try {
-    //     const m2 = await getMember(friendId);
-    // } catch (MemberNotExistError) {
-    //     console.error("MemberNotExistError");
-    // }
-     
-    
-    // if(balance < FRIEND_POINTS){
-    //     throw new PointsLackError();
-    // }
 
+    if(isTeamLeader(memberId)){
+        throw new LeaderCantAddFriendError();
+    }
+
+    try {
+        const m1 = await getMember(memberId);
+    } catch (MemberNotExistError) {
+        console.error("MemberNotExistError");
+    }
+    try {
+        const m2 = await getMember(friendId);
+    } catch (MemberNotExistError) {
+        console.error("MemberNotExistError");
+    }
+
+    //判断是否有好友
+    const c1 = await prisma.friend.count({
+        where:{
+            m1_id:memberId,
+            status:1
+        }
+    })
+    if(c1 > 0){
+        throw new OnlyOneFriendError();
+    }
+
+    //判断是否已经是好友
     const c2 = await prisma.friend.count({
         where:{
             m1_id:memberId,
@@ -47,58 +75,36 @@ export async function addFriend(memberId:bigint,friendId:bigint){
         throw new FriendAlreadyError();
     }
 
-    const c3 = await prisma.friend.count({
-        where:{
-            m1_id:friendId,
-            m2_id:memberId,
-            status:1
-        }
-    })
-    if(c3 > 0){
-        throw new FriendAlreadyError();
-    }
-    
-    // const c1 = await prisma.friend.count({
-    //     where:{
-    //         m1_id:memberId,
-    //         status:1
-    //     }
-    // });
-    // if(c1 >= FRIEND_LIMIT){
-    //     throw new FriendLimitError();
-    // }
-    
-    await prisma.$transaction(async (prisma:any) => {
-        //扣减积分
-        await prisma.member.update({
+    if(!teamLeaders.includes(String(friendId))){
+        //如果被加好友不是队长
+        const c3 = await prisma.friend.count({
             where:{
-                member_id:memberId
-            },
-            data:{
-                points:{
-                    decrement: Math.abs(FRIEND_POINTS),
-                }
-            }
-        })
-        //加好友
-        await prisma.friend.create({
-            data:{
-                m1_id:memberId,
-                m2_id:friendId,
+                m1_id:friendId,
                 status:1
             }
         })
-        //添加记录
-        await prisma.points_log.create({
-            data:{
-                from_id:memberId,
-                to_id:0,
-                type:1,
-                points:-FRIEND_POINTS
-            }
-        })
-        
-    });
+        if(c3 == 0){
+            throw new NoUpperFriendError();
+        }
+    }
+
+    await addToDao(memberId,friendId);
+   
+}
+
+
+async function addToDao(memberId:bigint,friendId:bigint){
+    await prisma.friend.create({
+        data:{
+            m1_id:memberId,
+            m2_id:friendId,
+            status:1
+        }
+    })
+}
+
+function isTeamLeader(memberId:bigint){
+    return teamLeaders.includes(String(memberId));
 }
 
 /**
@@ -107,6 +113,14 @@ export async function addFriend(memberId:bigint,friendId:bigint){
  * @param friendId 
  */
 export async function removeFriend(memberId:bigint,friendId:bigint){
+    if(isTeamLeader(memberId)){
+        throw new LeaderCantRemoveFriendError();
+    }
+    const r = await redisClient.ttl(formatKey(REDIS_REMOVE_FRIEND_TTL,String(memberId)));
+    if(r > 0){
+        const h = Math.ceil(r/3600);
+        throw new RemoveFriendCDError(`${h}`);
+    }
     const rs1 = await prisma.friend.findFirst({
         where:{
             m1_id:memberId,
@@ -133,7 +147,7 @@ export async function removeFriend(memberId:bigint,friendId:bigint){
             }
         });
     } catch (error) {
-        console.error("removeFriend1:",error);
+        // console.error("removeFriend1:",error);
     }
     try {
         await prisma.friend.delete({
@@ -145,17 +159,17 @@ export async function removeFriend(memberId:bigint,friendId:bigint){
             }
         });
     } catch (error) {
-        console.error("removeFriend2:",error);
+        // console.error("removeFriend2:",error);
     }
- 
+    await redisClient.setEx(formatKey(REDIS_REMOVE_FRIEND_TTL,String(memberId)),30*24*3600,"1");
 }
+
 /**
  * 根据memberId查询相关好友
  * @param memberId 
  * @returns 
  */
 export async function findFriends(memberId:bigint):Promise<Array<member>>{
-
     const f1 = await prisma.friend.findMany({
         where:{
             m1_id:memberId,
@@ -191,4 +205,8 @@ export async function findFriends(memberId:bigint):Promise<Array<member>>{
     console.log("findFriends-members:",members);
     return members;
 
+}
+
+function formatKey(a:string,b:string){
+    return a + ":" + b;
 }
