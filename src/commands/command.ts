@@ -4,7 +4,7 @@ import { time,userMention,channelMention, roleMention } from '@discordjs/builder
 import { getFormatEmbed } from '../tools/tools.js';
 import { addFriend, findFriends, removeFriend } from '../service/friendService.js';
 import { FriendAddSelfError, FriendAlreadyError, FriendLimitError, FriendNotExistError, LeaderCantAddFriendError, LeaderCantRemoveFriendError, NoUpperFriendError, OnlyOneFriendError, PointsLackError, RemoveFriendCDError } from '../entity/bizError.js';
-import { getMember } from '../service/memberService.js';
+import { getMember, initMember } from '../service/memberService.js';
 
 
 @Discord()
@@ -16,10 +16,11 @@ class ChannelCommandMessage {
       friendId: string,
       command: CommandInteraction): Promise<unknown> {
         try {
-          console.log('add-friend userId:'+command.user.id+" friendId:"+friendId);
+          console.log('add-friend userId:'+command.user.id+" friendId:"+friendId+" user.username:"+command.user.username);
           if(!friendId){
             return command.reply({content:'friendId error'});
           }
+          
           await addFriend(BigInt(command.user.id),BigInt(friendId));
           let rs = `${friendId} add-friend succeeded`;
           const embed = getFormatEmbed('add-friend',rs);
@@ -130,24 +131,46 @@ class ChannelCommandMessage {
         }
     }
 
-    @Slash({ description: "info", name: "info" })
-    async info(
+    // @Slash({ description: "info", name: "info" })
+    // async info(
+    //   command: CommandInteraction): Promise<unknown> {
+    //     try {
+    //       console.log('info userId:'+command.user.id);
+    //       const m = await getMember(BigInt(command.user.id));
+    //       let rs = `personal information:\n\r`;
+    //       if(m){
+    //         rs += `points:${m.points}\n\r`;
+    //       }
+    //       const embed = getFormatEmbed('info',rs);
+    //       return command.reply({
+    //         embeds:[embed]
+    //       });
+    //     } catch (error) {
+    //       console.error('info error:',error);
+    //       return command.reply({
+    //         embeds:[getFormatEmbed('info',`ERROR:failed`)]
+    //       });
+    //     }
+    // }
+
+    @Slash({ description: "init-member", name: "init-member" })
+    async initmember(
+      @SlashOption({ name: "friend",description: "friendid",type:ApplicationCommandOptionType.User,required:true})
+      user: GuildMember,
       command: CommandInteraction): Promise<unknown> {
         try {
-          console.log('info userId:'+command.user.id);
-          const m = await getMember(BigInt(command.user.id));
-          let rs = `personal information:\n\r`;
-          if(m){
-            rs += `points:${m.points}\n\r`;
-          }
-          const embed = getFormatEmbed('info',rs);
+          console.log('init-member userId:'+user.id,user.nickname);
+          const userId = user.id.toString();
+          const m = await initMember(BigInt(userId),user.displayName);
+          let rs = `${userMention(userId)} init-member succeeded`;
+          const embed = getFormatEmbed('init-member',rs);
           return command.reply({
             embeds:[embed]
           });
         } catch (error) {
-          console.error('info error:',error);
+          console.error('init-member error:',error);
           return command.reply({
-            embeds:[getFormatEmbed('info',`ERROR:failed`)]
+            embeds:[getFormatEmbed('init-member',`ERROR:failed`)]
           });
         }
     }

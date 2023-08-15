@@ -4,6 +4,7 @@ import {Discord, On, Client,Once} from 'discordx';
 import {Permissions, Message,MessageReaction,ButtonInteraction, MessageType} from 'discord.js'
 // import { GatewayDispatchEvents, InteractionType, MessageFlags } from '@discordjs/core';
 import {changePoints, EventTypeEnum} from '../service/pointsService';
+import { initMember } from "../service/memberService.js";
 
 @Discord()
 export abstract class AppDiscord {
@@ -20,9 +21,14 @@ export abstract class AppDiscord {
       return;
     }
 
-    if(message.type == MessageType.ChatInputCommand){
+    if(message.member?.roles.botRole){
+      return;
+    }
 
-      
+    const m = message.member;
+    if(m){
+      console.log("member:",m.id,m.nickname,m.displayName);
+      await initMember(BigInt(m.id),m.displayName);
     }
 
 

@@ -31,6 +31,8 @@ model member {
   wallet      String   @db.Char(42)
   status      Int      @default(1) @db.UnsignedTinyInt
   points      Int
+  nickname    String   @default("") @db.VarChar(50)
+  role_id     String   @default("") @db.VarChar(45)
   create_time DateTime @default(now()) @db.DateTime(0)
   update_time DateTime @default(now()) @db.DateTime(0)
 }

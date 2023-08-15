@@ -41,16 +41,16 @@ export async function addFriend(memberId:bigint,friendId:bigint){
         throw new LeaderCantAddFriendError();
     }
 
-    try {
-        const m1 = await getMember(memberId);
-    } catch (MemberNotExistError) {
-        console.error("MemberNotExistError");
-    }
-    try {
-        const m2 = await getMember(friendId);
-    } catch (MemberNotExistError) {
-        console.error("MemberNotExistError");
-    }
+    // try {
+    //     const m1 = await initMember(memberId,nickname);
+    // } catch (MemberNotExistError) {
+    //     console.error("MemberNotExistError");
+    // }
+    // try {
+    //     const m2 = await initMember(friendId,nickname);
+    // } catch (MemberNotExistError) {
+    //     console.error("MemberNotExistError");
+    // }
 
     //判断是否有好友
     const c1 = await prisma.friend.count({
