@@ -22,7 +22,9 @@ const teamLeaders = [
     //NovaDAO - sevenyang
     "1039807128631771218",
     //weeping club - mailajinbao
-    "1125680403794112523"
+    "1125680403794112523",
+    //Branche - chong0001
+    "442674813928996864"
 ];
 
 /**
@@ -116,11 +118,11 @@ export async function removeFriend(memberId:bigint,friendId:bigint){
     if(isTeamLeader(memberId)){
         throw new LeaderCantRemoveFriendError();
     }
-    const r = await redisClient.ttl(formatKey(REDIS_REMOVE_FRIEND_TTL,String(memberId)));
-    if(r > 0){
-        const h = Math.ceil(r/3600);
-        throw new RemoveFriendCDError(`${h}`);
-    }
+    // const r = await redisClient.ttl(formatKey(REDIS_REMOVE_FRIEND_TTL,String(memberId)));
+    // if(r > 0){
+    //     const h = Math.ceil(r/3600);
+    //     throw new RemoveFriendCDError(`${h}`);
+    // }
     const rs1 = await prisma.friend.findFirst({
         where:{
             m1_id:memberId,
@@ -161,7 +163,7 @@ export async function removeFriend(memberId:bigint,friendId:bigint){
     } catch (error) {
         // console.error("removeFriend2:",error);
     }
-    await redisClient.setEx(formatKey(REDIS_REMOVE_FRIEND_TTL,String(memberId)),30*24*3600,"1");
+    // await redisClient.setEx(formatKey(REDIS_REMOVE_FRIEND_TTL,String(memberId)),30*24*3600,"1");
 }
 
 /**
